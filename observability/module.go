@@ -44,6 +44,8 @@ func (Observer) CaddyModule() caddy.ModuleInfo {
 }
 
 func (m *Observer) Provision(ctx caddy.Context) error {
+	registerer := prometheus.DefaultRegisterer // TODO: use ctx.GetMetricsRegisterer() on caddy >= 2.9.0
+
 	if m.ServiceID == "" {
 		return fmt.Errorf("service_id is required")
 	}
@@ -61,7 +63,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 
 	labels := []string{"server_name", "service_id", "process_id", "rule_id"}
 
-	m.metrics.requestsInFlight = promauto.NewGaugeVec(prometheus.GaugeOpts{
+	m.metrics.requestsInFlight = promauto.With(registerer).NewGaugeVec(prometheus.GaugeOpts{
 		Namespace:   namespace,
 		Subsystem:   subsystem,
 		Name:        "requests_in_flight",
@@ -69,7 +71,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		ConstLabels: prometheus.Labels{},
 	}, labels)
 
-	m.metrics.requestsCount = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.metrics.requestsCount = promauto.With(registerer).NewCounterVec(prometheus.CounterOpts{
 		Namespace:   namespace,
 		Subsystem:   subsystem,
 		Name:        "requests_count",
@@ -77,7 +79,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		ConstLabels: prometheus.Labels{},
 	}, append(labels, "status_code"))
 
-	m.metrics.requestsTtfb = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	m.metrics.requestsTtfb = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
 		Namespace:   namespace,
 		Subsystem:   subsystem,
 		Name:        "requests_ttfb",
@@ -85,7 +87,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		ConstLabels: prometheus.Labels{},
 	}, labels)
 
-	m.metrics.requestsDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	m.metrics.requestsDuration = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
 		Namespace:   namespace,
 		Subsystem:   subsystem,
 		Name:        "requests_duration",
