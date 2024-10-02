@@ -1,0 +1,82 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: go
+      - run: echo "release_created=${{ steps.release.outputs.release_created }}" >> "$GITHUB_OUTPUT"
+      - run: echo "tag_name=${{ steps.release.outputs.tag_name }}" >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    steps:
+      - name: Docker Image Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/ptah-sh/ptah-caddy
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=pr
+            type=ref,event=tag
+            type=sha
+            type=edge
+            type=raw,priority=1001,value=${{ needs.release-please.outputs.tag_name }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.licenses=FSL-1.1-Apache-2.0
+          annotations: |
+            org.opencontainers.image.licenses=FSL-1.1-Apache-2.0
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          labels: ${{ steps.meta.outputs.labels }}
+  # TODO: should we create a github deployment?
+  deploy:
+    runs-on: ubuntu-latest
+    needs:
+      - release-please
+      - build-and-publish
+    if: ${{ needs.release-please.outputs.release_created }}
+    steps:
+      - name: Deploy to Ptah.sh
+        uses: ptah-sh/deploy-action@v1.1.1
+        with:
+          apiKey: ${{ secrets.PTAH_API_TOKEN }}
+          service: 'caddy'
+          processes: |
+            - name: svc
+              dockerImage: ghcr.io/ptah-sh/ptah-caddy:${{ needs.release-please.outputs.tag_name }}
+              envVars:
+                - name: SENTRY_RELEASE
+                  value: ${{ needs.release-please.outputs.tag_name }}

@@ -1,0 +1,6 @@
+localhost {
+    route * {
+        ptah_observer service_id "123" process_id "456" rule_id "789"
+        respond "Hello, World!"
+    }
+}
