@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/ptah-sh/ptah-caddy/compare/v0.0.1...v0.0.2) (2024-10-02)
+
+
+### Bug Fixes
+
+* token access ([196e71a](https://github.com/ptah-sh/ptah-caddy/commit/196e71a3f22dd31f9055bd86021b7b50817da2f8))
+
 ## 0.0.1 (2024-10-02)
 
 
