@@ -1,6 +1,23 @@
 localhost {
+    route /hello {
+        ptah_observer service_id "123" process_id "456" rule_id "789"
+        respond "Route /hello"
+    }
+
     route * {
         ptah_observer service_id "123" process_id "456" rule_id "789"
-        respond "Hello, World!"
+        respond "Any route"
+    }
+}
+
+remotehost {
+    route /hello {
+        ptah_observer service_id "123" process_id "456" rule_id "789"
+        respond "Route remotehost /hello"
+    }
+
+    route * {
+        ptah_observer service_id "123" process_id "456" rule_id "789"
+        respond "Any remotehost route"
     }
 }

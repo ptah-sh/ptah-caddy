@@ -12,4 +12,5 @@ cd ..
 
 go mod tidy
 
-xcaddy build --with github.com/ptah-sh/ptah-caddy/observability=./observability
+# TODO: do not use master
+xcaddy build master --with github.com/ptah-sh/ptah-caddy/observability=./observability
