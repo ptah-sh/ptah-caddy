@@ -21,17 +21,19 @@ func (m *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyh
 	recorder := newResponseRecorder(w)
 
 	err := next.ServeHTTP(recorder, r)
+	status := strconv.Itoa(recorder.Status())
 	if err == nil {
-		m.metrics.requestsCount.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, strconv.Itoa(recorder.Status())).Add(1)
+		m.metrics.requestsCount.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Add(1)
 	} else {
+		// 500 status as the Caddy middleware failed itself
 		m.metrics.requestsCount.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, "500").Add(1)
 	}
 
 	if !recorder.firstByte.IsZero() {
-		m.metrics.requestsTtfb.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID).Observe(time.Since(recorder.firstByte).Seconds())
+		m.metrics.requestsTtfb.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Observe(time.Since(recorder.firstByte).Seconds())
 	}
 
-	m.metrics.requestsDuration.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID).Observe(time.Since(startTime).Seconds())
+	m.metrics.requestsDuration.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Observe(time.Since(startTime).Seconds())
 
 	return err
 }

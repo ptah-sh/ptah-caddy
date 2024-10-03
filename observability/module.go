@@ -20,8 +20,6 @@ type httpMetrics struct {
 func init() {
 	caddy.RegisterModule(&Observer{})
 
-	// httpcaddyfile.RegisterGlobalOption("ptah_node_id", parseCaddyfile)
-
 	httpcaddyfile.RegisterHandlerDirective("ptah_observer", parseCaddyfile)
 }
 
@@ -91,7 +89,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		Name:        "requests_ttfb",
 		Help:        "Histogram of HTTP(S) requests time to first byte.",
 		ConstLabels: prometheus.Labels{},
-	}, labels))
+	}, append(labels, "status_code")))
 	if err != nil {
 		return err
 	}
@@ -102,7 +100,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		Name:        "requests_duration",
 		Help:        "Histogram of HTTP(S) requests duration.",
 		ConstLabels: prometheus.Labels{},
-	}, labels))
+	}, append(labels, "status_code")))
 	if err != nil {
 		return err
 	}
