@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/ptah-sh/ptah-caddy/compare/v0.0.2...v0.0.3) (2024-10-03)
+
+
+### Bug Fixes
+
+* register metrics only once ([3783068](https://github.com/ptah-sh/ptah-caddy/commit/3783068601293c5bb039c258ff8065b9fc7f29bd))
+
 ## [0.0.2](https://github.com/ptah-sh/ptah-caddy/compare/v0.0.1...v0.0.2) (2024-10-02)
 
 
