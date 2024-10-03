@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/ptah-sh/ptah-caddy/compare/v0.2.0...v0.2.1) (2024-10-03)
+
+
+### Bug Fixes
+
+* better labels ordering ([5f1d85e](https://github.com/ptah-sh/ptah-caddy/commit/5f1d85e74ea077a07f11329c515a4fddbe2e5fda))
+
 ## [0.2.0](https://github.com/ptah-sh/ptah-caddy/compare/v0.1.0...v0.2.0) (2024-10-03)
 
 
