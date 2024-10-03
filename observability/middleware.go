@@ -10,7 +10,7 @@ import (
 
 var _ caddyhttp.MiddlewareHandler = (*Observer)(nil)
 
-func (m Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
+func (m *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.Handler) error {
 	startTime := time.Now()
 
 	serverName := serverNameFromContext(r.Context())

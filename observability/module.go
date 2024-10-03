@@ -3,6 +3,7 @@ package observability
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	caddy "github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/httpcaddyfile"
@@ -19,7 +20,7 @@ type httpMetrics struct {
 }
 
 func init() {
-	caddy.RegisterModule(Observer{})
+	caddy.RegisterModule(&Observer{})
 
 	// httpcaddyfile.RegisterGlobalOption("ptah_node_id", parseCaddyfile)
 
@@ -32,9 +33,10 @@ type Observer struct {
 	RuleID    string `json:"rule_id"`
 
 	metrics httpMetrics
+	init    sync.Once
 }
 
-func (Observer) CaddyModule() caddy.ModuleInfo {
+func (*Observer) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
 		ID: "http.handlers.ptah_observer",
 		New: func() caddy.Module {
@@ -58,42 +60,44 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 		return fmt.Errorf("rule_id is required")
 	}
 
-	namespace := "ptah"
-	subsystem := "caddy_http"
+	m.init.Do(func() {
+		namespace := "ptah"
+		subsystem := "caddy_http"
 
-	labels := []string{"server_name", "service_id", "process_id", "rule_id"}
+		labels := []string{"server_name", "service_id", "process_id", "rule_id"}
 
-	m.metrics.requestsInFlight = promauto.With(registerer).NewGaugeVec(prometheus.GaugeOpts{
-		Namespace:   namespace,
-		Subsystem:   subsystem,
-		Name:        "requests_in_flight",
-		Help:        "Counter of HTTP(S) requests in flight.",
-		ConstLabels: prometheus.Labels{},
-	}, labels)
+		m.metrics.requestsInFlight = promauto.With(registerer).NewGaugeVec(prometheus.GaugeOpts{
+			Namespace:   namespace,
+			Subsystem:   subsystem,
+			Name:        "requests_in_flight",
+			Help:        "Counter of HTTP(S) requests in flight.",
+			ConstLabels: prometheus.Labels{},
+		}, labels)
 
-	m.metrics.requestsCount = promauto.With(registerer).NewCounterVec(prometheus.CounterOpts{
-		Namespace:   namespace,
-		Subsystem:   subsystem,
-		Name:        "requests_count",
-		Help:        "Counter of HTTP(S) requests made.",
-		ConstLabels: prometheus.Labels{},
-	}, append(labels, "status_code"))
+		m.metrics.requestsCount = promauto.With(registerer).NewCounterVec(prometheus.CounterOpts{
+			Namespace:   namespace,
+			Subsystem:   subsystem,
+			Name:        "requests_count",
+			Help:        "Counter of HTTP(S) requests made.",
+			ConstLabels: prometheus.Labels{},
+		}, append(labels, "status_code"))
 
-	m.metrics.requestsTtfb = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   namespace,
-		Subsystem:   subsystem,
-		Name:        "requests_ttfb",
-		Help:        "Histogram of HTTP(S) requests time to first byte.",
-		ConstLabels: prometheus.Labels{},
-	}, labels)
+		m.metrics.requestsTtfb = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
+			Namespace:   namespace,
+			Subsystem:   subsystem,
+			Name:        "requests_ttfb",
+			Help:        "Histogram of HTTP(S) requests time to first byte.",
+			ConstLabels: prometheus.Labels{},
+		}, labels)
 
-	m.metrics.requestsDuration = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
-		Namespace:   namespace,
-		Subsystem:   subsystem,
-		Name:        "requests_duration",
-		Help:        "Histogram of HTTP(S) requests duration.",
-		ConstLabels: prometheus.Labels{},
-	}, labels)
+		m.metrics.requestsDuration = promauto.With(registerer).NewHistogramVec(prometheus.HistogramOpts{
+			Namespace:   namespace,
+			Subsystem:   subsystem,
+			Name:        "requests_duration",
+			Help:        "Histogram of HTTP(S) requests duration.",
+			ConstLabels: prometheus.Labels{},
+		}, labels)
+	})
 
 	return nil
 }
