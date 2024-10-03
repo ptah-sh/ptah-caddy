@@ -58,7 +58,7 @@ func (m *Observer) Provision(ctx caddy.Context) error {
 	namespace := "ptah"
 	subsystem := "caddy_http"
 
-	labels := []string{"server_name", "service_id", "process_id", "rule_id"}
+	labels := []string{"service_id", "process_id", "server_name", "rule_id"}
 
 	var err error
 	m.metrics.requestsInFlight, err = registerOnce(registry, prometheus.NewGaugeVec(prometheus.GaugeOpts{
