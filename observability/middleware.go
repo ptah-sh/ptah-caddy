@@ -15,25 +15,25 @@ func (m *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyh
 
 	serverName := serverNameFromContext(r.Context())
 
-	m.metrics.requestsInFlight.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID).Add(1)
-	defer m.metrics.requestsInFlight.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID).Add(-1)
+	m.metrics.requestsInFlight.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID).Add(1)
+	defer m.metrics.requestsInFlight.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID).Add(-1)
 
 	recorder := newResponseRecorder(w)
 
 	err := next.ServeHTTP(recorder, r)
 	status := strconv.Itoa(recorder.Status())
 	if err == nil {
-		m.metrics.requestsCount.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Add(1)
+		m.metrics.requestsCount.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Add(1)
 	} else {
 		// 500 status as the Caddy middleware failed itself
-		m.metrics.requestsCount.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, "500").Add(1)
+		m.metrics.requestsCount.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, "500").Add(1)
 	}
 
 	if !recorder.firstByte.IsZero() {
-		m.metrics.requestsTtfb.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Observe(time.Since(recorder.firstByte).Seconds())
+		m.metrics.requestsTtfb.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Observe(time.Since(recorder.firstByte).Seconds())
 	}
 
-	m.metrics.requestsDuration.WithLabelValues(serverName, m.ServiceID, m.ProcessID, m.RuleID, status).Observe(time.Since(startTime).Seconds())
+	m.metrics.requestsDuration.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Observe(time.Since(startTime).Seconds())
 
 	return err
 }
