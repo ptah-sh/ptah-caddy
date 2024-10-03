@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.0](https://github.com/ptah-sh/ptah-caddy/compare/v0.0.4...v0.1.0) (2024-10-03)
+
+
+### Features
+
+* add status to ttfb and duration ([7b2c3ea](https://github.com/ptah-sh/ptah-caddy/commit/7b2c3ea08090b873f5b2c23ffe0fd5a7c808a8e2))
+
 ## [0.0.4](https://github.com/ptah-sh/ptah-caddy/compare/v0.0.3...v0.0.4) (2024-10-03)
 
 
