@@ -18,7 +18,11 @@ func (m *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyh
 	m.metrics.requestsInFlight.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID).Add(1)
 	defer m.metrics.requestsInFlight.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID).Add(-1)
 
-	recorder := newResponseRecorder(w)
+	recorder := caddyhttp.NewResponseRecorder(w, nil, func(statusCode int, header http.Header) bool {
+		m.metrics.requestsTtfb.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, strconv.Itoa(statusCode)).Observe(time.Since(startTime).Seconds())
+
+		return false
+	})
 
 	err := next.ServeHTTP(recorder, r)
 	status := strconv.Itoa(recorder.Status())
@@ -29,31 +33,31 @@ func (m *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyh
 		m.metrics.requestsCount.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, "500").Add(1)
 	}
 
-	if !recorder.firstByte.IsZero() {
-		m.metrics.requestsTtfb.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Observe(time.Since(recorder.firstByte).Seconds())
-	}
+	// if !recorder.firstByte.IsZero() {
+	// 	m.metrics.requestsTtfb.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Observe(time.Since(recorder.firstByte).Seconds())
+	// }
 
 	m.metrics.requestsDuration.WithLabelValues(m.ServiceID, m.ProcessID, serverName, m.RuleID, status).Observe(time.Since(startTime).Seconds())
 
 	return err
 }
 
-type ResponseRecorder struct {
-	caddyhttp.ResponseRecorder
+// type ResponseRecorder struct {
+// 	caddyhttp.ResponseRecorder
 
-	firstByte time.Time
-}
+// 	firstByte time.Time
+// }
 
-func newResponseRecorder(w http.ResponseWriter) *ResponseRecorder {
-	return &ResponseRecorder{
-		ResponseRecorder: caddyhttp.NewResponseRecorder(w, nil, nil),
-	}
-}
+// func newResponseRecorder(w http.ResponseWriter) *ResponseRecorder {
+// 	return &ResponseRecorder{
+// 		ResponseRecorder: caddyhttp.NewResponseRecorder(w, nil, nil),
+// 	}
+// }
 
-func (r *ResponseRecorder) WriteHeader(statusCode int) {
-	if r.firstByte.IsZero() {
-		r.firstByte = time.Now()
-	}
+// func (r *ResponseRecorder) WriteHeader(statusCode int) {
+// 	if r.firstByte.IsZero() {
+// 		r.firstByte = time.Now()
+// 	}
 
-	r.ResponseRecorder.WriteHeader(statusCode)
-}
+// 	r.ResponseRecorder.WriteHeader(statusCode)
+// }
