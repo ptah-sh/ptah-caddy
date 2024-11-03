@@ -78,7 +78,9 @@ jobs:
           service: 'caddy'
           processes: |
             - name: svc
-              dockerImage: ghcr.io/ptah-sh/ptah-caddy:${{ needs.release-please.outputs.tag_name }}
+              workers:
+                - name: main
+                  dockerImage: ghcr.io/ptah-sh/ptah-caddy:${{ needs.release-please.outputs.tag_name }}
               envVars:
                 - name: SENTRY_RELEASE
                   value: ${{ needs.release-please.outputs.tag_name }}
