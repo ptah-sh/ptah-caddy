@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/ptah-sh/ptah-caddy/compare/v0.2.1...v0.3.0) (2024-11-03)
+
+
+### Features
+
+* try not break websockets ([a2956be](https://github.com/ptah-sh/ptah-caddy/commit/a2956be4a3e3e912a2f09d8b5add248efc34008f))
+
 ## [0.2.1](https://github.com/ptah-sh/ptah-caddy/compare/v0.2.0...v0.2.1) (2024-10-03)
 
 
